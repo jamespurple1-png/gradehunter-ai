@@ -47,11 +47,9 @@ export default function Home() {
 
   setCards(data || []);
   setLoading(false);
-
-  async function deleteCard(id: number) {
-    // ...
-  }
 }
+
+async function deleteCard(id: number) {
   const confirmed = window.confirm(
     "Are you sure you want to delete this card?"
   );
@@ -69,9 +67,8 @@ export default function Home() {
     return;
   }
 
-  fetchCards();
+  await fetchCards();
 }
-  }
 
   const portfolioStats = useMemo(() => {
     const totalInvested = cards.reduce((total, card) => {
@@ -169,18 +166,7 @@ export default function Home() {
                 </h2>
               </div>
 
-            <div className="flex flex-col items-end gap-2">
-  <span className="rounded-full bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-300">
-    {card.status || "Watching"}
-  </span>
-
-  <button
-    onClick={() => deleteCard(card.id)}
-    className="text-xs text-red-400 hover:text-red-300"
-  >
-    Delete
-  </button>
-</div>
+            
             </div>
 
             <div className="flex h-64 items-end gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
