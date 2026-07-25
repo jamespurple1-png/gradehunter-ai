@@ -1,13 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+
+type Card = {
+  id: number;
+  name: string;
+  set: string;
+  buy_price: number;
+  grading_cost: number;
+  psa9_value: number;
+  psa10_value: number;
+  status: string;
+};
 
 type AddCardModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onCardAdded: () => void;
+  onCardSaved: () => void | Promise<void>;
+  editingCard: Card | null;
 };
 
 const initialForm = {
@@ -20,14 +32,41 @@ const initialForm = {
   status: "Watching",
 };
 
+type CardForm = typeof initialForm;
+
 export default function AddCardModal({
   isOpen,
   onClose,
-  onCardAdded,
+  onCardSaved,
+  editingCard,
 }: AddCardModalProps) {
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState<CardForm>(initialForm);
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const isEditing = editingCard !== null;
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    if (editingCard) {
+      setForm({
+        name: editingCard.name ?? "",
+        set: editingCard.set ?? "",
+        buy_price: String(editingCard.buy_price ?? ""),
+        grading_cost: String(editingCard.grading_cost ?? ""),
+        psa9_value: String(editingCard.psa9_value ?? ""),
+        psa10_value: String(editingCard.psa10_value ?? ""),
+        status: editingCard.status || "Watching",
+      });
+    } else {
+      setForm(initialForm);
+    }
+
+    setErrorMessage("");
+  }, [isOpen, editingCard]);
 
   if (!isOpen) {
     return null;
@@ -55,7 +94,7 @@ export default function AddCardModal({
     setSaving(true);
     setErrorMessage("");
 
-    const { error } = await supabase.from("cards").insert({
+    const cardData = {
       name: form.name.trim(),
       set: form.set.trim(),
       buy_price: Number(form.buy_price || 0),
@@ -63,7 +102,14 @@ export default function AddCardModal({
       psa9_value: Number(form.psa9_value || 0),
       psa10_value: Number(form.psa10_value || 0),
       status: form.status,
-    });
+    };
+
+    const { error } = editingCard
+      ? await supabase
+          .from("cards")
+          .update(cardData)
+          .eq("id", editingCard.id)
+      : await supabase.from("cards").insert(cardData);
 
     if (error) {
       console.error(error);
@@ -72,9 +118,10 @@ export default function AddCardModal({
       return;
     }
 
+    await onCardSaved();
+
     setForm(initialForm);
     setSaving(false);
-    onCardAdded();
     onClose();
   }
 
@@ -97,11 +144,13 @@ export default function AddCardModal({
             </p>
 
             <h2 className="mt-2 text-2xl font-bold text-white">
-              Add a new card
+              {isEditing ? "Edit card" : "Add a new card"}
             </h2>
 
             <p className="mt-1 text-sm text-slate-400">
-              Enter the purchase, grading and projected value details.
+              {isEditing
+                ? "Update the card details and save your changes."
+                : "Enter the purchase, grading and projected value details."}
             </p>
           </div>
 
@@ -215,7 +264,11 @@ export default function AddCardModal({
               disabled={saving}
               className="rounded-xl bg-emerald-400 px-5 py-3 font-bold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {saving ? "Saving..." : "Save card"}
+              {saving
+                ? "Saving..."
+                : isEditing
+                  ? "Save changes"
+                  : "Save card"}
             </button>
           </div>
         </form>

@@ -1,5 +1,8 @@
 "use client";
 
+import ProgressRow from "@/components/dashboard/ProgressRow";
+import Metric from "@/components/dashboard/Metric";
+import StatCard from "@/components/dashboard/StatCard";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import AddCardModal from "@/components/cards/AddCardModal";
@@ -26,6 +29,7 @@ export default function Home() {
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingCard, setEditingCard] = useState<Card | null>(null);
 
   useEffect(() => {
     fetchCards();
@@ -69,6 +73,21 @@ async function deleteCard(id: number) {
 
   await fetchCards();
 }
+
+  function openAddModal() {
+    setEditingCard(null);
+    setShowAddModal(true);
+  }
+
+  function editCard(card: Card) {
+    setEditingCard(card);
+    setShowAddModal(true);
+  }
+
+  function closeCardModal() {
+    setShowAddModal(false);
+    setEditingCard(null);
+  }
 
   const portfolioStats = useMemo(() => {
     const totalInvested = cards.reduce((total, card) => {
@@ -120,7 +139,7 @@ async function deleteCard(id: number) {
 
          <button
   type="button"
-  onClick={() => setShowAddModal(true)}
+  onClick={openAddModal}
   className="rounded-xl bg-emerald-400 px-5 py-3 font-bold text-slate-950 transition hover:bg-emerald-300"
 >
   + Add Card
@@ -330,13 +349,23 @@ async function deleteCard(id: number) {
     {card.status || "Watching"}
   </span>
 
-  <button
-    type="button"
-    onClick={() => deleteCard(card.id)}
-    className="text-xs font-semibold text-red-400 transition hover:text-red-300"
-  >
-    Delete
-  </button>
+  <div className="flex gap-3">
+    <button
+      type="button"
+      onClick={() => editCard(card)}
+      className="text-xs font-semibold text-cyan-400 transition hover:text-cyan-300"
+    >
+      Edit
+    </button>
+
+    <button
+      type="button"
+      onClick={() => deleteCard(card.id)}
+      className="text-xs font-semibold text-red-400 transition hover:text-red-300"
+    >
+      Delete
+    </button>
+  </div>
 </div>
                     </div>
 
@@ -400,99 +429,20 @@ async function deleteCard(id: number) {
         </section>
       </div>
       <AddCardModal
-  isOpen={showAddModal}
-  onClose={() => setShowAddModal(false)}
-  onCardAdded={fetchCards}
-/>
+        isOpen={showAddModal}
+        onClose={closeCardModal}
+        onCardSaved={fetchCards}
+        editingCard={editingCard}
+      />
     </main>
   );
 }
 
-type StatCardProps = {
-  label: string;
-  value: string;
-  subtitle: string;
-  positive?: boolean;
-};
-
-function StatCard({
-  label,
-  value,
-  subtitle,
-  positive = true,
-}: StatCardProps) {
-  return (
-    <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-5 shadow-xl shadow-black/10">
-      <p className="text-sm font-medium text-slate-400">
-        {label}
-      </p>
-
-      <p
-        className={`mt-3 text-3xl font-black ${
-          label === "Potential ROI"
-            ? positive
-              ? "text-emerald-400"
-              : "text-red-400"
-            : "text-white"
-        }`}
-      >
-        {value}
-      </p>
-
-      <p className="mt-2 text-sm text-slate-500">
-        {subtitle}
-      </p>
-    </div>
-  );
-}
 
 type MetricProps = {
   label: string;
   value: string;
 };
 
-function Metric({ label, value }: MetricProps) {
-  return (
-    <div className="rounded-2xl bg-slate-950/70 p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-        {label}
-      </p>
 
-      <p className="mt-2 font-bold text-slate-100">
-        {value}
-      </p>
-    </div>
-  );
-}
 
-type ProgressRowProps = {
-  label: string;
-  value: number;
-  total: number;
-};
-
-function ProgressRow({
-  label,
-  value,
-  total,
-}: ProgressRowProps) {
-  const width = Math.min((value / total) * 100, 100);
-
-  return (
-    <div>
-      <div className="mb-2 flex items-center justify-between text-sm">
-        <span className="text-slate-400">{label}</span>
-        <span className="font-bold">
-          {formatCurrency(value)}
-        </span>
-      </div>
-
-      <div className="h-2 rounded-full bg-slate-800">
-        <div
-          className="h-2 rounded-full bg-emerald-400"
-          style={{ width: `${width}%` }}
-        />
-      </div>
-    </div>
-  );
-}
