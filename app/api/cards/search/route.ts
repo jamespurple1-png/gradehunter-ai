@@ -11,6 +11,10 @@ type PokemonApiResponse = {
 
 export const dynamic = "force-dynamic";
 
+function wait(milliseconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
 export async function GET(request: NextRequest) {
   const query = request.nextUrl.searchParams.get("query")?.trim();
 
@@ -24,99 +28,96 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  const safeQuery = query
+    .replace(/[^a-zA-Z0-9À-ÿ '-]/g, "")
+    .trim();
+
+  if (safeQuery.length < 2) {
+    return NextResponse.json(
+      {
+        data: [],
+        message: "Please enter a valid card name.",
+      },
+      { status: 400 }
+    );
+  }
+
+  const apiUrl = new URL("https://api.pokemontcg.io/v2/cards");
+
+  apiUrl.searchParams.set("q", `name:${safeQuery}*`);
+  apiUrl.searchParams.set("pageSize", "24");
+  apiUrl.searchParams.set(
+    "select",
+    "id,name,number,rarity,images,set"
+  );
+
+  const headers: HeadersInit = {
+    Accept: "application/json",
+  };
+
+  const apiKey = process.env.POKEMON_TCG_API_KEY?.trim();
+
+  if (apiKey) {
+    headers["X-Api-Key"] = apiKey;
+  }
+
   try {
-    // Keep only characters that are safe for the Pokémon API search syntax.
-    const safeQuery = query
-      .replace(/[^a-zA-Z0-9À-ÿ '-]/g, "")
-      .trim();
+    let lastStatus = 500;
+    let lastMessage = "Pokémon card search temporarily failed.";
 
-    if (safeQuery.length < 2) {
-      return NextResponse.json(
-        {
-          data: [],
-          message: "Please enter a valid card name.",
-        },
-        { status: 400 }
-      );
-    }
-
-    const apiUrl = new URL("https://api.pokemontcg.io/v2/cards");
-
-    // Pokémon API wildcard syntax: name:char*
-    apiUrl.searchParams.set("q", `name:${safeQuery}*`);
-    apiUrl.searchParams.set("pageSize", "24");
-    apiUrl.searchParams.set("select", "id,name,number,rarity,images,set");
-
-    const headers: HeadersInit = {
-      Accept: "application/json",
-    };
-
-    const apiKey = process.env.POKEMON_TCG_API_KEY?.trim();
-
-    if (apiKey) {
-      headers["X-Api-Key"] = apiKey;
-    }
-
-    const response = await fetch(apiUrl, {
-      method: "GET",
-      headers,
-      cache: "no-store",
-    });
-
-    const responseText = await response.text();
-
-    let result: PokemonApiResponse;
-
-    try {
-      result = JSON.parse(responseText) as PokemonApiResponse;
-    } catch {
-      console.error("Pokémon API non-JSON response:", {
-        status: response.status,
-        statusText: response.statusText,
-        contentType: response.headers.get("content-type"),
-        preview: responseText.slice(0, 300),
+    // Try up to three times because the upstream API can return temporary 500s.
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      const response = await fetch(apiUrl.toString(), {
+        method: "GET",
+        headers,
+        cache: "no-store",
       });
 
-      return NextResponse.json(
-        {
-          data: [],
-          message: `Pokémon API error: ${response.status} ${response.statusText}.`,
-        },
-        { status: 502 }
-      );
+      lastStatus = response.status;
+
+      const responseText = await response.text();
+
+      let result: PokemonApiResponse | null = null;
+
+      try {
+        result = JSON.parse(responseText) as PokemonApiResponse;
+      } catch {
+        lastMessage = "The Pokémon API returned an invalid response.";
+      }
+
+      if (response.ok && result) {
+        return NextResponse.json({
+          data: result.data ?? [],
+          count: result.count ?? result.data?.length ?? 0,
+          totalCount: result.totalCount ?? 0,
+        });
+      }
+
+      lastMessage =
+        result?.error?.message ||
+        `Pokémon API search failed with status ${response.status}.`;
+
+      if (response.status < 500 || attempt === 3) {
+        break;
+      }
+
+      await wait(attempt * 750);
     }
 
-    if (!response.ok) {
-      console.error("Pokémon API search failed:", {
-        status: response.status,
-        result,
-      });
-
-      return NextResponse.json(
-        {
-          data: [],
-          message:
-            result.error?.message ||
-            `Pokémon API search failed with status ${response.status}.`,
-        },
-        { status: response.status }
-      );
-    }
-
-    return NextResponse.json({
-      data: result.data ?? [],
-      count: result.count ?? result.data?.length ?? 0,
-      totalCount: result.totalCount ?? 0,
-    });
-  } catch (error) {
-    console.error("GradeHunter search route error:", error);
-
+    return NextResponse.json(
+      {
+        data: [],
+        message: lastMessage,
+      },
+      { status: lastStatus >= 500 ? 502 : lastStatus }
+    );
+  } catch {
     return NextResponse.json(
       {
         data: [],
         message: "Unable to connect to the Pokémon card service.",
       },
-      { status: 500 }
+      { status: 502 }
     );
   }
 }

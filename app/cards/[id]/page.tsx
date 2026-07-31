@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, Bookmark, BriefcaseBusiness } from "lucide-react";
 import { useEffect, useState } from "react";
+import AddToPortfolioModal from "@/components/cards/AddToPortfolioModal";
 
 type CardPrice = {
   low?: number;
@@ -13,7 +14,7 @@ type CardPrice = {
   directLow?: number;
 };
 
-type PokemonCard = {
+export type PokemonCard = {
   id: string;
   name: string;
   number: string;
@@ -48,9 +49,7 @@ type CardResponse = {
 };
 
 function formatPrice(value?: number) {
-  if (typeof value !== "number") {
-    return "Unavailable";
-  }
+  if (typeof value !== "number") return "Unavailable";
 
   return new Intl.NumberFormat("en-GB", {
     style: "currency",
@@ -61,10 +60,7 @@ function formatPrice(value?: number) {
 
 function findMarketPrice(card: PokemonCard) {
   const prices = card.tcgplayer?.prices;
-
-  if (!prices) {
-    return undefined;
-  }
+  if (!prices) return undefined;
 
   const preferredPriceTypes = [
     "holofoil",
@@ -76,16 +72,11 @@ function findMarketPrice(card: PokemonCard) {
 
   for (const priceType of preferredPriceTypes) {
     const marketPrice = prices[priceType]?.market;
-
-    if (typeof marketPrice === "number") {
-      return marketPrice;
-    }
+    if (typeof marketPrice === "number") return marketPrice;
   }
 
   for (const priceData of Object.values(prices)) {
-    if (typeof priceData.market === "number") {
-      return priceData.market;
-    }
+    if (typeof priceData.market === "number") return priceData.market;
   }
 
   return undefined;
@@ -98,11 +89,11 @@ export default function CardDetailsPage() {
   const [card, setCard] = useState<PokemonCard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showPortfolioModal, setShowPortfolioModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
-    if (!cardId) {
-      return;
-    }
+    if (!cardId) return;
 
     const controller = new AbortController();
 
@@ -111,17 +102,22 @@ export default function CardDetailsPage() {
       setError("");
 
       try {
-        const response = await fetch(
-          `/api/cards/${encodeURIComponent(cardId)}`,
-          {
-            signal: controller.signal,
-            headers: {
-              Accept: "application/json",
-            },
-          }
-        );
+        const response = await fetch(`/api/cards/${encodeURIComponent(cardId)}`, {
+          signal: controller.signal,
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+        });
 
-        const result = (await response.json()) as CardResponse;
+        const responseText = await response.text();
+        let result: CardResponse;
+
+        try {
+          result = JSON.parse(responseText) as CardResponse;
+        } catch {
+          throw new Error(
+            `The card service returned an invalid response (${response.status}).`
+          );
+        }
 
         if (!response.ok || !result.data) {
           throw new Error(
@@ -140,8 +136,6 @@ export default function CardDetailsPage() {
           return;
         }
 
-        console.error("Card details error:", loadError);
-
         setCard(null);
         setError(
           loadError instanceof Error
@@ -149,17 +143,12 @@ export default function CardDetailsPage() {
             : "Unable to load this card."
         );
       } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
+        if (!controller.signal.aborted) setLoading(false);
       }
     }
 
     loadCard();
-
-    return () => {
-      controller.abort();
-    };
+    return () => controller.abort();
   }, [cardId]);
 
   if (loading) {
@@ -187,10 +176,7 @@ export default function CardDetailsPage() {
           </Link>
 
           <div className="rounded-3xl border border-red-900/60 bg-red-950/30 p-12 text-center">
-            <h1 className="text-2xl font-bold text-red-300">
-              Card unavailable
-            </h1>
-
+            <h1 className="text-2xl font-bold text-red-300">Card unavailable</h1>
             <p className="mt-2 text-red-200/80">
               {error || "This card could not be found."}
             </p>
@@ -212,6 +198,12 @@ export default function CardDetailsPage() {
           <ArrowLeft size={18} />
           Back to search
         </Link>
+
+        {successMessage && (
+          <div className="mb-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 text-sm font-semibold text-emerald-300">
+            {successMessage}
+          </div>
+        )}
 
         <div className="grid gap-8 lg:grid-cols-[420px_1fr]">
           <section className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6">
@@ -250,20 +242,9 @@ export default function CardDetailsPage() {
             </div>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              <MetricCard
-                label="Market price"
-                value={formatPrice(marketPrice)}
-              />
-
-              <MetricCard
-                label="GradeHunter Score"
-                value="Coming soon"
-              />
-
-              <MetricCard
-                label="PSA 10 value"
-                value="Coming soon"
-              />
+              <MetricCard label="Market price" value={formatPrice(marketPrice)} />
+              <MetricCard label="GradeHunter Score" value="Coming soon" />
+              <MetricCard label="PSA 10 value" value="Coming soon" />
             </div>
 
             <div className="mt-6 rounded-3xl border border-slate-800 bg-slate-900/70 p-6">
@@ -271,34 +252,23 @@ export default function CardDetailsPage() {
 
               <dl className="mt-5 grid gap-5 sm:grid-cols-2">
                 <CardDetail label="Set" value={card.set.name} />
-
-                <CardDetail
-                  label="Series"
-                  value={card.set.series || "Unknown"}
-                />
-
+                <CardDetail label="Series" value={card.set.series || "Unknown"} />
                 <CardDetail
                   label="Release date"
                   value={card.set.releaseDate || "Unknown"}
                 />
-
-                <CardDetail
-                  label="Artist"
-                  value={card.artist || "Unknown"}
-                />
-
+                <CardDetail label="Artist" value={card.artist || "Unknown"} />
                 <CardDetail
                   label="Type"
-                  value={card.subtypes?.join(", ") || card.supertype || "Unknown"}
+                  value={
+                    card.subtypes?.join(", ") ||
+                    card.supertype ||
+                    "Unknown"
+                  }
                 />
-
                 <CardDetail
                   label="Set size"
-                  value={
-                    card.set.total
-                      ? `${card.set.total} cards`
-                      : "Unknown"
-                  }
+                  value={card.set.total ? `${card.set.total} cards` : "Unknown"}
                 />
               </dl>
             </div>
@@ -306,6 +276,10 @@ export default function CardDetailsPage() {
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <button
                 type="button"
+                onClick={() => {
+                  setSuccessMessage("");
+                  setShowPortfolioModal(true);
+                }}
                 className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-400 px-5 py-4 font-bold text-slate-950 transition hover:bg-emerald-300"
               >
                 <BriefcaseBusiness size={20} />
@@ -323,17 +297,21 @@ export default function CardDetailsPage() {
           </section>
         </div>
       </div>
+
+      <AddToPortfolioModal
+        isOpen={showPortfolioModal}
+        card={card}
+        onClose={() => setShowPortfolioModal(false)}
+        onSaved={() => {
+          setShowPortfolioModal(false);
+          setSuccessMessage(`${card.name} was added to your portfolio.`);
+        }}
+      />
     </main>
   );
 }
 
-function MetricCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function MetricCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
       <p className="text-sm text-slate-500">{label}</p>
@@ -342,13 +320,7 @@ function MetricCard({
   );
 }
 
-function CardDetail({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function CardDetail({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <dt className="text-sm text-slate-500">{label}</dt>

@@ -30,28 +30,34 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingCard, setEditingCard] = useState<Card | null>(null);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     fetchCards();
   }, []);
 
   async function fetchCards() {
-  setLoading(true);
+    setLoading(true);
+    setLoadError("");
 
-  const { data, error } = await supabase
-    .from("cards")
-    .select("*")
-    .order("created_at", { ascending: false });
+    const { data, error } = await supabase
+      .from("cards")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-  if (error) {
-    console.error(error);
+    if (error) {
+      setCards([]);
+      setLoadError(
+        error.message ||
+          "Unable to load your portfolio from Supabase."
+      );
+      setLoading(false);
+      return;
+    }
+
+    setCards(data || []);
     setLoading(false);
-    return;
   }
-
-  setCards(data || []);
-  setLoading(false);
-}
 
 async function deleteCard(id: number) {
   const confirmed = window.confirm(
@@ -305,6 +311,24 @@ async function deleteCard(id: number) {
             <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-10 text-center text-slate-400">
               Loading portfolio...
             </div>
+          ) : loadError ? (
+            <div className="rounded-3xl border border-red-900/60 bg-red-950/30 p-10 text-center">
+              <h3 className="text-xl font-bold text-red-300">
+                Unable to load portfolio
+              </h3>
+
+              <p className="mt-2 text-red-200/80">
+                {loadError}
+              </p>
+
+              <button
+                type="button"
+                onClick={fetchCards}
+                className="mt-5 rounded-xl bg-red-300 px-4 py-2 font-bold text-red-950 transition hover:bg-red-200"
+              >
+                Try again
+              </button>
+            </div>
           ) : cards.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-900/40 p-12 text-center">
               <h3 className="text-xl font-bold">
@@ -443,6 +467,5 @@ type MetricProps = {
   label: string;
   value: string;
 };
-
 
 
