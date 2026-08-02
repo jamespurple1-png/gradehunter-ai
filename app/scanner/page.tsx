@@ -7,20 +7,19 @@ import {
   Search,
   SlidersHorizontal,
 } from "lucide-react";
-
-type ScannerListing = {
-  id: string;
-  title: string;
-  image: string;
-  listingPrice: number;
-  postage: number;
-  marketValue: number;
-  condition: string;
-  buyingOption: "Buy It Now" | "Auction";
-  seller: string;
-  sellerFeedback: number;
-  url: string;
-};
+import { fetchJson } from "@/lib/fetchJson";
+import { formatCurrency } from "@/lib/format";
+import type { ScannerListing } from "@/lib/types";
+import PageHeader from "@/components/ui/PageHeader";
+import Card from "@/components/ui/Card";
+import Badge from "@/components/ui/Badge";
+import Button from "@/components/ui/Button";
+import Metric from "@/components/ui/Metric";
+import Input from "@/components/ui/Input";
+import Select from "@/components/ui/Select";
+import LoadingState from "@/components/ui/LoadingState";
+import ErrorState from "@/components/ui/ErrorState";
+import EmptyState from "@/components/ui/EmptyState";
 
 type ScannerResponse = {
   mode?: "preview" | "live";
@@ -29,14 +28,6 @@ type ScannerResponse = {
   data?: ScannerListing[];
   message?: string;
 };
-
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-GB", {
-    style: "currency",
-    currency: "GBP",
-  }).format(value);
-}
 
 function calculateDealScore(listing: ScannerListing) {
   const deliveredPrice = listing.listingPrice + listing.postage;
@@ -112,35 +103,9 @@ export default function ScannerPage() {
         params.set("maxPrice", maxPrice.trim());
       }
 
-      const response = await fetch(
-        `/api/ebay/search?${params.toString()}`,
-        {
-          method: "GET",
-          cache: "no-store",
-          headers: {
-            Accept: "application/json",
-          },
-        }
+      const result = await fetchJson<ScannerResponse>(
+        `/api/ebay/search?${params.toString()}`
       );
-
-      const responseText = await response.text();
-
-      let result: ScannerResponse;
-
-      try {
-        result = JSON.parse(responseText) as ScannerResponse;
-      } catch {
-        throw new Error(
-          `The scanner returned an invalid response (${response.status}).`
-        );
-      }
-
-      if (!response.ok) {
-        throw new Error(
-          result.message ||
-            `The scanner request failed with status ${response.status}.`
-        );
-      }
 
       setListings(result.data ?? []);
       setMode(result.mode ?? "preview");
@@ -160,24 +125,15 @@ export default function ScannerPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-8 text-white lg:px-10">
+    <main className="min-h-screen px-6 py-8 lg:px-10">
       <div className="mx-auto max-w-7xl">
-        <header className="mb-10">
-          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#d6b36a]">
-            Deal discovery
-          </p>
+        <PageHeader
+          eyebrow="Deal discovery"
+          title="eBay Scanner"
+          description="Search live marketplace listings and compare them against estimated card values to identify potential opportunities."
+        />
 
-          <h1 className="mt-2 text-4xl font-black tracking-tight">
-            eBay Scanner
-          </h1>
-
-          <p className="mt-3 max-w-2xl text-slate-400">
-            Search live marketplace listings and compare them against estimated
-            card values to identify potential opportunities.
-          </p>
-        </header>
-
-        <section className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6">
+        <Card as="section">
           <form
             onSubmit={handleScan}
             className="flex flex-col gap-3 lg:flex-row"
@@ -185,7 +141,7 @@ export default function ScannerPage() {
             <div className="relative flex-1">
               <Search
                 size={20}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-subtle"
               />
 
               <input
@@ -193,20 +149,20 @@ export default function ScannerPage() {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Charizard Base Set 4/102"
-                className="w-full rounded-2xl border border-slate-700 bg-slate-950 py-4 pl-12 pr-4 text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-400"
+                className="w-full rounded-2xl border border-border-strong bg-background py-4 pl-12 pr-4 text-foreground outline-none transition placeholder:text-subtle focus:border-brand"
               />
             </div>
 
-            <button
+            <Button
               type="submit"
+              size="lg"
               disabled={loading || query.trim().length < 2}
-              className="rounded-2xl bg-[#d6b36a] px-7 py-4 font-bold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? "Scanning..." : "Scan eBay"}
-            </button>
+            </Button>
           </form>
 
-          <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-slate-400">
+          <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-muted">
             <SlidersHorizontal size={18} />
             Filters
           </div>
@@ -215,12 +171,12 @@ export default function ScannerPage() {
             <div>
               <label
                 htmlFor="maxPrice"
-                className="mb-2 block text-sm text-slate-400"
+                className="mb-2 block text-sm text-muted"
               >
                 Maximum delivered price
               </label>
 
-              <input
+              <Input
                 id="maxPrice"
                 type="number"
                 min="0"
@@ -228,81 +184,68 @@ export default function ScannerPage() {
                 value={maxPrice}
                 onChange={(event) => setMaxPrice(event.target.value)}
                 placeholder="No maximum"
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-emerald-400"
               />
             </div>
 
             <div>
               <label
                 htmlFor="buyingOption"
-                className="mb-2 block text-sm text-slate-400"
+                className="mb-2 block text-sm text-muted"
               >
                 Buying option
               </label>
 
-              <select
+              <Select
                 id="buyingOption"
                 value={buyingOption}
                 onChange={(event) => setBuyingOption(event.target.value)}
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-emerald-400"
               >
                 <option value="all">All listings</option>
                 <option value="Buy It Now">Buy It Now</option>
                 <option value="Auction">Auction</option>
-              </select>
+              </Select>
             </div>
 
             <div>
               <label
                 htmlFor="sortBy"
-                className="mb-2 block text-sm text-slate-400"
+                className="mb-2 block text-sm text-muted"
               >
                 Sort results
               </label>
 
-              <select
+              <Select
                 id="sortBy"
                 value={sortBy}
                 onChange={(event) => setSortBy(event.target.value)}
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-emerald-400"
               >
                 <option value="score">Best deal score</option>
                 <option value="discount">Largest saving</option>
                 <option value="price">Lowest delivered price</option>
-              </select>
+              </Select>
             </div>
           </div>
-        </section>
+        </Card>
 
         <section className="mt-10">
           {loading && (
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-12 text-center text-slate-400">
-              Scanning marketplace listings...
-            </div>
+            <LoadingState message="Scanning marketplace listings..." />
           )}
 
           {!loading && errorMessage && (
-            <div className="rounded-3xl border border-red-900/60 bg-red-950/30 p-10 text-center">
-              <h2 className="text-xl font-bold text-red-300">
-                Scanner unavailable
-              </h2>
-
-              <p className="mt-2 text-red-200/80">
-                {errorMessage}
-              </p>
-            </div>
+            <ErrorState
+              as="h2"
+              title="Scanner unavailable"
+              message={errorMessage}
+            />
           )}
 
           {!loading && !errorMessage && !hasScanned && (
-            <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-900/40 p-12 text-center">
-              <h2 className="text-2xl font-bold">
-                Search for potential opportunities
-              </h2>
-
-              <p className="mt-2 text-slate-400">
-                Enter a card name, set and number for the most relevant results.
-              </p>
-            </div>
+            <EmptyState
+              size="lg"
+              title="Search for potential opportunities"
+              description="Enter a card name, set and number for the most relevant results."
+            />
           )}
 
           {!loading && !errorMessage && hasScanned && (
@@ -310,21 +253,15 @@ export default function ScannerPage() {
               <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-3">
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-subtle">
                       {mode === "live"
                         ? "Live eBay results"
                         : "Scanner preview"}
                     </p>
 
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-bold ${
-                        mode === "live"
-                          ? "bg-[#d6b36a]/15 [#ead39b]"
-                          : "bg-amber-400/15 text-amber-300"
-                      }`}
-                    >
+                    <Badge tone={mode === "live" ? "live" : "warning"}>
                       {mode === "live" ? "Live mode" : "Preview mode"}
-                    </span>
+                    </Badge>
                   </div>
 
                   <h2 className="mt-1 text-2xl font-bold">
@@ -332,21 +269,17 @@ export default function ScannerPage() {
                   </h2>
                 </div>
 
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-subtle">
                   {filteredListings.length} listings found
                 </p>
               </div>
 
               {filteredListings.length === 0 ? (
-                <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-900/40 p-12 text-center">
-                  <h3 className="text-xl font-bold">
-                    No matching listings
-                  </h3>
-
-                  <p className="mt-2 text-slate-400">
-                    Increase the maximum price or change your filters.
-                  </p>
-                </div>
+                <EmptyState
+                  as="h3"
+                  title="No matching listings"
+                  description="Increase the maximum price or change your filters."
+                />
               ) : (
                 <div className="grid gap-6 xl:grid-cols-2">
                   {filteredListings.map((listing) => (
@@ -378,9 +311,9 @@ function OpportunityCard({
   const isPotentialDeal = saving > 0;
 
   return (
-    <article className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/70">
+    <Card as="article" padding="none" className="overflow-hidden">
       <div className="grid md:grid-cols-[200px_1fr]">
-        <div className="flex min-h-64 items-center justify-center bg-slate-950/70 p-5">
+        <div className="flex min-h-64 items-center justify-center bg-background/70 p-5">
           <img
             src={listing.image}
             alt={listing.title}
@@ -402,7 +335,7 @@ function OpportunityCard({
                 {listing.title}
               </h3>
 
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-2 text-sm text-subtle">
                 {listing.condition} · {listing.buyingOption}
               </p>
             </div>
@@ -410,10 +343,10 @@ function OpportunityCard({
             <div
               className={`rounded-2xl px-4 py-3 text-center ${
                 score >= 80
-                  ? "bg-[#d6b36a] text-slate-950"
+                  ? "bg-brand text-background"
                   : score >= 60
-                    ? "bg-amber-300 text-slate-950"
-                    : "bg-slate-800 text-white"
+                    ? "bg-warning text-background"
+                    : "bg-surface-muted text-foreground"
               }`}
             >
               <p className="text-xs font-bold uppercase tracking-wide">
@@ -427,12 +360,12 @@ function OpportunityCard({
           </div>
 
           <div className="mt-5 grid grid-cols-2 gap-3">
-            <ScannerMetric
+            <Metric
               label="Listing"
               value={formatCurrency(listing.listingPrice)}
             />
 
-            <ScannerMetric
+            <Metric
               label="Postage"
               value={
                 listing.postage === 0
@@ -441,35 +374,35 @@ function OpportunityCard({
               }
             />
 
-            <ScannerMetric
+            <Metric
               label="Delivered"
               value={formatCurrency(deliveredPrice)}
             />
 
-            <ScannerMetric
+            <Metric
               label="Market estimate"
               value={formatCurrency(listing.marketValue)}
             />
           </div>
 
-          <div className="mt-5 flex flex-col gap-4 border-t border-slate-800 pt-5 sm:flex-row sm:items-end sm:justify-between">
+          <div className="mt-5 flex flex-col gap-4 border-t border-border pt-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-subtle">
                 Estimated saving
               </p>
 
               <p
                 className={`mt-1 text-2xl font-black ${
                   isPotentialDeal
-                    ? "text-[#d6b36a]"
-                    : "text-red-400"
+                    ? "text-positive"
+                    : "text-negative"
                 }`}
               >
                 {saving >= 0 ? "+" : ""}
                 {formatCurrency(saving)}
               </p>
 
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-subtle">
                 {discountPercent >= 0 ? "+" : ""}
                 {discountPercent.toFixed(1)}% against market
               </p>
@@ -479,38 +412,18 @@ function OpportunityCard({
               href={listing.url}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#d6b36a] px-5 py-3 font-bold text-slate-950 transition hover:bg-emerald-300"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 font-bold text-background transition hover:bg-brand-light"
             >
               View listing
               <ExternalLink size={18} />
             </a>
           </div>
 
-          <p className="mt-4 text-xs text-slate-600">
+          <p className="mt-4 text-xs text-subtle">
             Seller: {listing.seller} · {listing.sellerFeedback}% feedback
           </p>
         </div>
       </div>
-    </article>
-  );
-}
-
-function ScannerMetric({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-2xl bg-slate-950/70 p-4">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-        {label}
-      </p>
-
-      <p className="mt-2 font-bold text-white">
-        {value}
-      </p>
-    </div>
+    </Card>
   );
 }

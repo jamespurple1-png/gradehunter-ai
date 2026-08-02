@@ -1,23 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-
-type PokemonCard = {
-  id: string;
-  name: string;
-  number: string;
-  rarity?: string;
-  images: {
-    small: string;
-    large: string;
-  };
-  set: {
-    id: string;
-    name: string;
-  };
-};
+import Modal from "@/components/ui/Modal";
+import Button from "@/components/ui/Button";
+import FormField from "@/components/forms/FormField";
+import SelectField from "@/components/forms/SelectField";
+import type { PokemonCard } from "@/lib/types";
 
 type AddToPortfolioModalProps = {
   isOpen: boolean;
@@ -36,6 +25,23 @@ const initialForm = {
   certificationNumber: "",
   notes: "",
 };
+
+const conditionOptions: Array<[string, string]> = [
+  ["NM", "Near Mint"],
+  ["LP", "Lightly Played"],
+  ["MP", "Moderately Played"],
+  ["HP", "Heavily Played"],
+  ["DMG", "Damaged"],
+];
+
+const gradingCompanyOptions: Array<[string, string]> = [
+  ["Raw", "Raw / Ungraded"],
+  ["PSA", "PSA"],
+  ["CGC", "CGC"],
+  ["BGS", "BGS"],
+  ["ACE", "ACE"],
+  ["Other", "Other"],
+];
 
 export default function AddToPortfolioModal({
   isOpen,
@@ -153,270 +159,136 @@ export default function AddToPortfolioModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 py-8 backdrop-blur-sm">
-      <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
-        <div className="mb-6 flex items-start justify-between gap-5">
-          <div className="flex items-center gap-4">
-            <img
-              src={card.images.small}
-              alt={`${card.name} Pokémon card`}
-              className="h-24 w-auto rounded-lg object-contain"
-            />
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      closeDisabled={saving}
+      maxWidth="3xl"
+      eyebrow="Add to portfolio"
+      title={card.name}
+      description={`${card.set.name} · Card #${card.number}`}
+      media={
+        <img
+          src={card.images.small}
+          alt={`${card.name} Pokémon card`}
+          className="h-24 w-auto rounded-lg object-contain"
+        />
+      }
+    >
+      <form onSubmit={handleSubmit}>
+        <div className="grid gap-5 md:grid-cols-2">
+          <FormField
+            label="Purchase price"
+            name="purchasePrice"
+            value={form.purchasePrice}
+            onChange={updateField}
+            type="number"
+            placeholder="0.00"
+            min="0"
+            step="0.01"
+          />
 
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-widest text-[#d6b36a]-400">
-                Add to portfolio
-              </p>
+          <FormField
+            label="Quantity"
+            name="quantity"
+            value={form.quantity}
+            onChange={updateField}
+            type="number"
+            placeholder="1"
+            min="1"
+            step="1"
+          />
 
-              <h2 className="mt-1 text-2xl font-bold text-white">
-                {card.name}
-              </h2>
+          <FormField
+            label="Purchase date"
+            name="purchaseDate"
+            value={form.purchaseDate}
+            onChange={updateField}
+            type="date"
+          />
 
-              <p className="mt-1 text-sm text-slate-400">
-                {card.set.name} · Card #{card.number}
-              </p>
-            </div>
-          </div>
+          <SelectField
+            label="Condition"
+            name="condition"
+            value={form.condition}
+            onChange={updateField}
+            options={conditionOptions}
+          />
 
-          <button
-            type="button"
-            onClick={handleClose}
-            className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white"
-            aria-label="Close modal"
-          >
-            <X size={22} />
-          </button>
-        </div>
+          <SelectField
+            label="Grading company"
+            name="gradingCompany"
+            value={form.gradingCompany}
+            onChange={updateField}
+            options={gradingCompanyOptions}
+          />
 
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-5 md:grid-cols-2">
+          <FormField
+            label="Grade"
+            name="grade"
+            value={form.grade}
+            onChange={updateField}
+            type="number"
+            placeholder="10"
+            min="1"
+            max="10"
+            step="0.5"
+            disabled={form.gradingCompany === "Raw"}
+          />
+
+          <div className="md:col-span-2">
             <FormField
-              label="Purchase price"
-              name="purchasePrice"
-              value={form.purchasePrice}
+              label="Certification number"
+              name="certificationNumber"
+              value={form.certificationNumber}
               onChange={updateField}
-              type="number"
-              placeholder="0.00"
-              min="0"
-              step="0.01"
-            />
-
-            <FormField
-              label="Quantity"
-              name="quantity"
-              value={form.quantity}
-              onChange={updateField}
-              type="number"
-              placeholder="1"
-              min="1"
-              step="1"
-            />
-
-            <FormField
-              label="Purchase date"
-              name="purchaseDate"
-              value={form.purchaseDate}
-              onChange={updateField}
-              type="date"
-              placeholder=""
-            />
-
-            <SelectField
-              label="Condition"
-              name="condition"
-              value={form.condition}
-              onChange={updateField}
-              options={[
-                ["NM", "Near Mint"],
-                ["LP", "Lightly Played"],
-                ["MP", "Moderately Played"],
-                ["HP", "Heavily Played"],
-                ["DMG", "Damaged"],
-              ]}
-            />
-
-            <SelectField
-              label="Grading company"
-              name="gradingCompany"
-              value={form.gradingCompany}
-              onChange={updateField}
-              options={[
-                ["Raw", "Raw / Ungraded"],
-                ["PSA", "PSA"],
-                ["CGC", "CGC"],
-                ["BGS", "BGS"],
-                ["ACE", "ACE"],
-                ["Other", "Other"],
-              ]}
-            />
-
-            <FormField
-              label="Grade"
-              name="grade"
-              value={form.grade}
-              onChange={updateField}
-              type="number"
-              placeholder="10"
-              min="1"
-              max="10"
-              step="0.5"
+              type="text"
+              placeholder="Optional"
               disabled={form.gradingCompany === "Raw"}
             />
-
-            <div className="md:col-span-2">
-              <FormField
-                label="Certification number"
-                name="certificationNumber"
-                value={form.certificationNumber}
-                onChange={updateField}
-                type="text"
-                placeholder="Optional"
-                disabled={form.gradingCompany === "Raw"}
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label
-                htmlFor="notes"
-                className="mb-2 block text-sm font-semibold text-slate-300"
-              >
-                Notes
-              </label>
-
-              <textarea
-                id="notes"
-                name="notes"
-                value={form.notes}
-                onChange={updateField}
-                rows={4}
-                placeholder="Seller, card condition, grading observations..."
-                className="w-full resize-none rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-400"
-              />
-            </div>
           </div>
 
-          {errorMessage && (
-            <div className="mt-5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-              {errorMessage}
-            </div>
-          )}
-
-          <div className="mt-7 flex flex-col-reverse gap-3 border-t border-slate-800 pt-6 sm:flex-row sm:justify-end">
-            <button
-              type="button"
-              onClick={handleClose}
-              disabled={saving}
-              className="rounded-xl border border-slate-700 px-5 py-3 font-semibold text-slate-300 transition hover:bg-slate-800 disabled:opacity-50"
+          <div className="md:col-span-2">
+            <label
+              htmlFor="notes"
+              className="mb-2 block text-sm font-semibold text-foreground"
             >
-              Cancel
-            </button>
+              Notes
+            </label>
 
-            <button
-              type="submit"
-              disabled={saving}
-              className="rounded-xl bg-[#d6b36a] px-5 py-3 font-bold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {saving ? "Saving..." : "Save to portfolio"}
-            </button>
+            <textarea
+              id="notes"
+              name="notes"
+              value={form.notes}
+              onChange={updateField}
+              rows={4}
+              placeholder="Seller, card condition, grading observations..."
+              className="w-full resize-none rounded-xl border border-border-strong bg-background px-4 py-3 text-foreground outline-none transition placeholder:text-subtle focus:border-brand"
+            />
           </div>
-        </form>
-      </div>
-    </div>
-  );
-}
+        </div>
 
-type FieldChangeEvent = React.ChangeEvent<
-  HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
->;
+        {errorMessage && (
+          <div className="mt-5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+            {errorMessage}
+          </div>
+        )}
 
-type FormFieldProps = {
-  label: string;
-  name: string;
-  value: string;
-  placeholder: string;
-  onChange: (event: FieldChangeEvent) => void;
-  type?: string;
-  min?: string;
-  max?: string;
-  step?: string;
-  disabled?: boolean;
-};
+        <div className="mt-7 flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={handleClose}
+            disabled={saving}
+          >
+            Cancel
+          </Button>
 
-function FormField({
-  label,
-  name,
-  value,
-  placeholder,
-  onChange,
-  type = "text",
-  min,
-  max,
-  step,
-  disabled = false,
-}: FormFieldProps) {
-  return (
-    <div>
-      <label
-        htmlFor={name}
-        className="mb-2 block text-sm font-semibold text-slate-300"
-      >
-        {label}
-      </label>
-
-      <input
-        id={name}
-        name={name}
-        value={value}
-        onChange={onChange}
-        type={type}
-        placeholder={placeholder}
-        min={min}
-        max={max}
-        step={step}
-        disabled={disabled}
-        className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
-      />
-    </div>
-  );
-}
-
-type SelectFieldProps = {
-  label: string;
-  name: string;
-  value: string;
-  options: Array<[string, string]>;
-  onChange: (event: FieldChangeEvent) => void;
-};
-
-function SelectField({
-  label,
-  name,
-  value,
-  options,
-  onChange,
-}: SelectFieldProps) {
-  return (
-    <div>
-      <label
-        htmlFor={name}
-        className="mb-2 block text-sm font-semibold text-slate-300"
-      >
-        {label}
-      </label>
-
-      <select
-        id={name}
-        name={name}
-        value={value}
-        onChange={onChange}
-        className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-emerald-400"
-      >
-        {options.map(([optionValue, optionLabel]) => (
-          <option key={optionValue} value={optionValue}>
-            {optionLabel}
-          </option>
-        ))}
-      </select>
-    </div>
+          <Button type="submit" disabled={saving}>
+            {saving ? "Saving..." : "Save to portfolio"}
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 }

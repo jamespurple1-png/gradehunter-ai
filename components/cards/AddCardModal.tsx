@@ -1,19 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-
-type Card = {
-  id: number;
-  name: string;
-  set: string;
-  buy_price: number;
-  grading_cost: number;
-  psa9_value: number;
-  psa10_value: number;
-  status: string;
-};
+import Modal from "@/components/ui/Modal";
+import Button from "@/components/ui/Button";
+import FormField from "@/components/forms/FormField";
+import SelectField from "@/components/forms/SelectField";
+import type { Card } from "@/lib/types";
 
 type AddCardModalProps = {
   isOpen: boolean;
@@ -33,6 +26,13 @@ const initialForm = {
 };
 
 type CardForm = typeof initialForm;
+
+const statusOptions: Array<[string, string]> = [
+  ["Watching", "Watching"],
+  ["Bought", "Bought"],
+  ["Sent", "Sent for grading"],
+  ["Graded", "Graded"],
+];
 
 export default function AddCardModal({
   isOpen,
@@ -135,190 +135,118 @@ export default function AddCardModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
-        <div className="mb-6 flex items-start justify-between">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-widest text-[#d6b36a]-400">
-              Portfolio
-            </p>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      closeDisabled={saving}
+      eyebrow="Portfolio"
+      title={isEditing ? "Edit card" : "Add a new card"}
+      description={
+        isEditing
+          ? "Update the card details and save your changes."
+          : "Enter the purchase, grading and projected value details."
+      }
+    >
+      <form onSubmit={handleSubmit}>
+        <div className="grid gap-5 md:grid-cols-2">
+          <FormField
+            label="Card name"
+            name="name"
+            value={form.name}
+            onChange={updateField}
+            placeholder="Charizard ex"
+            required
+          />
 
-            <h2 className="mt-2 text-2xl font-bold text-white">
-              {isEditing ? "Edit card" : "Add a new card"}
-            </h2>
+          <FormField
+            label="Set"
+            name="set"
+            value={form.set}
+            onChange={updateField}
+            placeholder="Paldean Fates"
+            required
+          />
 
-            <p className="mt-1 text-sm text-slate-400">
-              {isEditing
-                ? "Update the card details and save your changes."
-                : "Enter the purchase, grading and projected value details."}
-            </p>
+          <FormField
+            label="Buy price"
+            name="buy_price"
+            value={form.buy_price}
+            onChange={updateField}
+            placeholder="0.00"
+            type="number"
+            min="0"
+            step="0.01"
+          />
+
+          <FormField
+            label="Grading cost"
+            name="grading_cost"
+            value={form.grading_cost}
+            onChange={updateField}
+            placeholder="0.00"
+            type="number"
+            min="0"
+            step="0.01"
+          />
+
+          <FormField
+            label="PSA 9 value"
+            name="psa9_value"
+            value={form.psa9_value}
+            onChange={updateField}
+            placeholder="0.00"
+            type="number"
+            min="0"
+            step="0.01"
+          />
+
+          <FormField
+            label="PSA 10 value"
+            name="psa10_value"
+            value={form.psa10_value}
+            onChange={updateField}
+            placeholder="0.00"
+            type="number"
+            min="0"
+            step="0.01"
+          />
+
+          <div className="md:col-span-2">
+            <SelectField
+              label="Status"
+              name="status"
+              value={form.status}
+              onChange={updateField}
+              options={statusOptions}
+            />
           </div>
-
-          <button
-            type="button"
-            onClick={handleClose}
-            className="rounded-xl p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white"
-            aria-label="Close modal"
-          >
-            <X size={22} />
-          </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-5 md:grid-cols-2">
-            <FormField
-              label="Card name"
-              name="name"
-              value={form.name}
-              onChange={updateField}
-              placeholder="Charizard ex"
-              required
-            />
-
-            <FormField
-              label="Set"
-              name="set"
-              value={form.set}
-              onChange={updateField}
-              placeholder="Paldean Fates"
-              required
-            />
-
-            <FormField
-              label="Buy price"
-              name="buy_price"
-              value={form.buy_price}
-              onChange={updateField}
-              placeholder="0.00"
-              type="number"
-            />
-
-            <FormField
-              label="Grading cost"
-              name="grading_cost"
-              value={form.grading_cost}
-              onChange={updateField}
-              placeholder="0.00"
-              type="number"
-            />
-
-            <FormField
-              label="PSA 9 value"
-              name="psa9_value"
-              value={form.psa9_value}
-              onChange={updateField}
-              placeholder="0.00"
-              type="number"
-            />
-
-            <FormField
-              label="PSA 10 value"
-              name="psa10_value"
-              value={form.psa10_value}
-              onChange={updateField}
-              placeholder="0.00"
-              type="number"
-            />
-
-            <div className="md:col-span-2">
-              <label
-                htmlFor="status"
-                className="mb-2 block text-sm font-semibold text-slate-300"
-              >
-                Status
-              </label>
-
-              <select
-                id="status"
-                name="status"
-                value={form.status}
-                onChange={updateField}
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-emerald-400"
-              >
-                <option value="Watching">Watching</option>
-                <option value="Bought">Bought</option>
-                <option value="Sent">Sent for grading</option>
-                <option value="Graded">Graded</option>
-              </select>
-            </div>
+        {errorMessage && (
+          <div className="mt-5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+            {errorMessage}
           </div>
+        )}
 
-          {errorMessage && (
-            <div className="mt-5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-              {errorMessage}
-            </div>
-          )}
+        <div className="mt-7 flex justify-end gap-3 border-t border-border pt-6">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={handleClose}
+            disabled={saving}
+          >
+            Cancel
+          </Button>
 
-          <div className="mt-7 flex justify-end gap-3 border-t border-slate-800 pt-6">
-            <button
-              type="button"
-              onClick={handleClose}
-              disabled={saving}
-              className="rounded-xl border border-slate-700 px-5 py-3 font-semibold text-slate-300 transition hover:bg-slate-800 disabled:opacity-50"
-            >
-              Cancel
-            </button>
-
-            <button
-              type="submit"
-              disabled={saving}
-              className="rounded-xlbg-[#d6b36a] px-5 py-3 font-bold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {saving
-                ? "Saving..."
-                : isEditing
-                  ? "Save changes"
-                  : "Save card"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-type FormFieldProps = {
-  label: string;
-  name: string;
-  value: string;
-  placeholder: string;
-  onChange: (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => void;
-  type?: string;
-  required?: boolean;
-};
-
-function FormField({
-  label,
-  name,
-  value,
-  placeholder,
-  onChange,
-  type = "text",
-  required = false,
-}: FormFieldProps) {
-  return (
-    <div>
-      <label
-        htmlFor={name}
-        className="mb-2 block text-sm font-semibold text-slate-300"
-      >
-        {label}
-      </label>
-
-      <input
-        id={name}
-        name={name}
-        value={value}
-        onChange={onChange}
-        type={type}
-        placeholder={placeholder}
-        required={required}
-        min={type === "number" ? "0" : undefined}
-        step={type === "number" ? "0.01" : undefined}
-        className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-400"
-      />
-    </div>
+          <Button type="submit" disabled={saving}>
+            {saving
+              ? "Saving..."
+              : isEditing
+                ? "Save changes"
+                : "Save card"}
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 }

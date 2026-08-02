@@ -1,18 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-type ScannerListing = {
-  id: string;
-  title: string;
-  image: string;
-  listingPrice: number;
-  postage: number;
-  marketValue: number;
-  condition: string;
-  buyingOption: "Buy It Now" | "Auction";
-  seller: string;
-  sellerFeedback: number;
-  url: string;
-};
+import type { ScannerListing } from "@/lib/types";
 
 const previewListings: ScannerListing[] = [
   {

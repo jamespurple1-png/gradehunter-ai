@@ -1,6 +1,7 @@
 "use client";
 
 import { supabase } from "@/lib/supabase";
+import Button from "@/components/ui/Button";
 
 export default function LoginPage() {
   async function signInWithGoogle() {
@@ -13,23 +14,20 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-950">
-      <div className="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900 p-8">
+    <main className="flex min-h-screen items-center justify-center">
+      <div className="w-full max-w-md rounded-3xl border border-border bg-surface-raised p-8">
 
-        <h1 className="text-3xl font-bold text-white">
+        <h1 className="text-3xl font-bold text-foreground">
           Welcome to GradeHunter
         </h1>
 
-        <p className="mt-3 text-slate-400">
+        <p className="mt-3 text-muted">
           Sign in to build your investment portfolio.
         </p>
 
-        <button
-          onClick={signInWithGoogle}
-          className="mt-8 w-full rounded-xl bg-emerald-400 py-4 font-bold text-slate-950 hover:bg-emerald-300"
-        >
+        <Button onClick={signInWithGoogle} size="lg" className="mt-8 w-full">
           Continue with Google
-        </button>
+        </Button>
 
       </div>
     </main>

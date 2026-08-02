@@ -1,35 +1,27 @@
 "use client";
 
 import ProgressRow from "@/components/dashboard/ProgressRow";
-import Metric from "@/components/dashboard/Metric";
-import StatCard from "@/components/dashboard/StatCard";
+import Metric from "@/components/ui/Metric";
+import StatCard from "@/components/ui/StatCard";
+import Card from "@/components/ui/Card";
+import Badge from "@/components/ui/Badge";
+import Button from "@/components/ui/Button";
+import PageHeader from "@/components/ui/PageHeader";
+import Section from "@/components/ui/Section";
+import LoadingState from "@/components/ui/LoadingState";
+import ErrorState from "@/components/ui/ErrorState";
+import EmptyState from "@/components/ui/EmptyState";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import AddCardModal from "@/components/cards/AddCardModal";
-
-type Card = {
-  id: number;
-  name: string;
-  set: string;
-  buy_price: number;
-  grading_cost: number;
-  psa9_value: number;
-  psa10_value: number;
-  status: string;
-};
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-GB", {
-    style: "currency",
-    currency: "GBP",
-  }).format(value);
-}
+import { formatCurrency } from "@/lib/format";
+import type { Card as PortfolioCard } from "@/lib/types";
 
 export default function Home() {
-  const [cards, setCards] = useState<Card[]>([]);
+  const [cards, setCards] = useState<PortfolioCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [editingCard, setEditingCard] = useState<Card | null>(null);
+  const [editingCard, setEditingCard] = useState<PortfolioCard | null>(null);
   const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
@@ -59,33 +51,33 @@ export default function Home() {
     setLoading(false);
   }
 
-async function deleteCard(id: number) {
-  const confirmed = window.confirm(
-    "Are you sure you want to delete this card?"
-  );
+  async function deleteCard(id: number) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this card?"
+    );
 
-  if (!confirmed) return;
+    if (!confirmed) return;
 
-  const { error } = await supabase
-    .from("cards")
-    .delete()
-    .eq("id", id);
+    const { error } = await supabase
+      .from("cards")
+      .delete()
+      .eq("id", id);
 
-  if (error) {
-    console.error(error);
-    alert("Unable to delete card.");
-    return;
+    if (error) {
+      console.error(error);
+      alert("Unable to delete card.");
+      return;
+    }
+
+    await fetchCards();
   }
-
-  await fetchCards();
-}
 
   function openAddModal() {
     setEditingCard(null);
     setShowAddModal(true);
   }
 
-  function editCard(card: Card) {
+  function editCard(card: PortfolioCard) {
     setEditingCard(card);
     setShowAddModal(true);
   }
@@ -124,33 +116,18 @@ async function deleteCard(id: number) {
   }, [cards]);
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen">
       <div className="mx-auto max-w-7xl px-6 py-8 lg:px-10">
-
-        <header className="mb-10 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="mb-2 text-sm font-semibold uppercase tracking-[0.25em] text-[#d6b36a]">
-              Pokémon grading portfolio
-            </p>
-
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-              GradeHunter AI
-            </h1>
-
-            <p className="mt-3 max-w-2xl text-slate-400">
-              Track grading opportunities, portfolio value and projected
-              returns from one dashboard.
-            </p>
-          </div>
-
-         <button
-  type="button"
-  onClick={openAddModal}
-  className="rounded-xl bg-[#d6b36a] px-5 py-3 font-bold text-slate-950 transition hover:bg-emerald-300"
->
-  + Add Card
-</button>
-        </header>
+        <PageHeader
+          eyebrow="Pokémon grading portfolio"
+          title="GradeHunter AI"
+          description="Track grading opportunities, portfolio value and projected returns from one dashboard."
+          layout="center"
+          variant="hero"
+          action={
+            <Button onClick={openAddModal}>+ Add Card</Button>
+          }
+        />
 
         <section className="mb-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
@@ -180,23 +157,21 @@ async function deleteCard(id: number) {
         </section>
 
         <section className="mb-10 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-2xl shadow-black/20">
+          <Card padding="md" shadow>
             <div className="mb-6 flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-400">
+                <p className="text-sm font-medium text-muted">
                   Portfolio outlook
                 </p>
                 <h2 className="mt-1 text-2xl font-bold">
                   Projected PSA 10 return
                 </h2>
               </div>
-
-            
             </div>
 
-            <div className="flex h-64 items-end gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
+            <div className="flex h-64 items-end gap-3 rounded-2xl border border-border bg-background/70 p-5">
               {cards.length === 0 ? (
-                <div className="flex h-full w-full items-center justify-center text-center text-slate-500">
+                <div className="flex h-full w-full items-center justify-center text-center text-subtle">
                   Add cards to start building your portfolio chart.
                 </div>
               ) : (
@@ -216,12 +191,12 @@ async function deleteCard(id: number) {
                     >
                       <div className="relative flex h-full w-full items-end">
                         <div
-                          className="w-full rounded-t-lg bg-gradient-to-t from-emerald-500 to-cyan-400 transition group-hover:opacity-80"
+                          className="w-full rounded-t-lg bg-gradient-to-t from-brand-dark to-brand transition group-hover:opacity-80"
                           style={{ height: `${height}%` }}
                         />
                       </div>
 
-                      <span className="max-w-[72px] truncate text-xs text-slate-500">
+                      <span className="max-w-[72px] truncate text-xs text-subtle">
                         {card.name}
                       </span>
                     </div>
@@ -229,10 +204,10 @@ async function deleteCard(id: number) {
                 })
               )}
             </div>
-          </div>
+          </Card>
 
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-2xl shadow-black/20">
-            <p className="text-sm font-medium text-slate-400">
+          <Card padding="md" shadow>
+            <p className="text-sm font-medium text-muted">
               Portfolio summary
             </p>
 
@@ -260,14 +235,14 @@ async function deleteCard(id: number) {
               />
             </div>
 
-            <div className="mt-8 rounded-2xl bg-slate-950/70 p-5">
-              <p className="text-sm text-slate-500">
+            <div className="mt-8 rounded-2xl bg-background/70 p-5">
+              <p className="text-sm text-subtle">
                 GradeHunter score
               </p>
 
               <div className="mt-2 flex items-end justify-between">
                 <div>
-                  <p className="text-4xl font-black text-[#d6b36a]">
+                  <p className="text-4xl font-black text-brand">
                     {portfolioStats.roi > 100
                       ? "A"
                       : portfolioStats.roi > 50
@@ -277,7 +252,7 @@ async function deleteCard(id: number) {
                       : "D"}
                   </p>
 
-                  <p className="mt-1 text-sm text-slate-400">
+                  <p className="mt-1 text-sm text-muted">
                     Based on projected ROI
                   </p>
                 </div>
@@ -287,58 +262,28 @@ async function deleteCard(id: number) {
                 </p>
               </div>
             </div>
-          </div>
+          </Card>
         </section>
 
-        <section>
-          <div className="mb-5 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-400">
-                Your collection
-              </p>
-
-              <h2 className="mt-1 text-2xl font-bold">
-                Portfolio
-              </h2>
-            </div>
-
-            <p className="text-sm text-slate-500">
-              {cards.length} {cards.length === 1 ? "card" : "cards"}
-            </p>
-          </div>
-
+        <Section
+          eyebrow="Your collection"
+          title="Portfolio"
+          trailing={`${cards.length} ${cards.length === 1 ? "card" : "cards"}`}
+        >
           {loading ? (
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-10 text-center text-slate-400">
-              Loading portfolio...
-            </div>
+            <LoadingState message="Loading portfolio..." size="md" />
           ) : loadError ? (
-            <div className="rounded-3xl border border-red-900/60 bg-red-950/30 p-10 text-center">
-              <h3 className="text-xl font-bold text-red-300">
-                Unable to load portfolio
-              </h3>
-
-              <p className="mt-2 text-red-200/80">
-                {loadError}
-              </p>
-
-              <button
-                type="button"
-                onClick={fetchCards}
-                className="mt-5 rounded-xl bg-red-300 px-4 py-2 font-bold text-red-950 transition hover:bg-red-200"
-              >
-                Try again
-              </button>
-            </div>
+            <ErrorState
+              title="Unable to load portfolio"
+              message={loadError}
+              onRetry={fetchCards}
+            />
           ) : cards.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-900/40 p-12 text-center">
-              <h3 className="text-xl font-bold">
-                No cards added yet
-              </h3>
-
-              <p className="mt-2 text-slate-400">
-                Add your first grading opportunity to begin tracking profit.
-              </p>
-            </div>
+            <EmptyState
+              as="h3"
+              title="No cards added yet"
+              description="Add your first grading opportunity to begin tracking profit."
+            />
           ) : (
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
               {cards.map((card) => {
@@ -353,13 +298,10 @@ async function deleteCard(id: number) {
                   invested > 0 ? (profit / invested) * 100 : 0;
 
                 return (
-                  <article
-                    key={card.id}
-                    className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 transition hover:-translate-y-1 hover:border-slate-700"
-                  >
+                  <Card key={card.id} as="article" hover>
                     <div className="mb-5 flex items-start justify-between gap-4">
                       <div>
-                        <p className="text-sm text-[#d6b36a]">
+                        <p className="text-sm text-brand">
                           {card.set}
                         </p>
 
@@ -368,29 +310,27 @@ async function deleteCard(id: number) {
                         </h3>
                       </div>
 
-           <div className="flex flex-col items-end gap-2">
-  <span className="rounded-full bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-300">
-    {card.status || "Watching"}
-  </span>
+                      <div className="flex flex-col items-end gap-2">
+                        <Badge>{card.status || "Watching"}</Badge>
 
-  <div className="flex gap-3">
-    <button
-      type="button"
-      onClick={() => editCard(card)}
-      className="text-xs font-semibold text-cyan-400 transition hover:text-cyan-300"
-    >
-      Edit
-    </button>
+                        <div className="flex gap-3">
+                          <button
+                            type="button"
+                            onClick={() => editCard(card)}
+                            className="text-xs font-semibold text-brand transition hover:text-brand-light"
+                          >
+                            Edit
+                          </button>
 
-    <button
-      type="button"
-      onClick={() => deleteCard(card.id)}
-      className="text-xs font-semibold text-red-400 transition hover:text-red-300"
-    >
-      Delete
-    </button>
-  </div>
-</div>
+                          <button
+                            type="button"
+                            onClick={() => deleteCard(card.id)}
+                            className="text-xs font-semibold text-negative transition hover:text-red-300"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
@@ -415,18 +355,18 @@ async function deleteCard(id: number) {
                       />
                     </div>
 
-                    <div className="mt-5 border-t border-slate-800 pt-5">
+                    <div className="mt-5 border-t border-border pt-5">
                       <div className="flex items-end justify-between">
                         <div>
-                          <p className="text-sm text-slate-500">
+                          <p className="text-sm text-subtle">
                             Potential profit
                           </p>
 
                           <p
                             className={`mt-1 text-2xl font-bold ${
                               profit >= 0
-                                ? "text-[#d6b36a]"
-                                : "text-red-400"
+                                ? "text-positive"
+                                : "text-negative"
                             }`}
                           >
                             {profit >= 0 ? "+" : ""}
@@ -435,7 +375,7 @@ async function deleteCard(id: number) {
                         </div>
 
                         <div className="text-right">
-                          <p className="text-sm text-slate-500">
+                          <p className="text-sm text-subtle">
                             ROI
                           </p>
 
@@ -445,12 +385,12 @@ async function deleteCard(id: number) {
                         </div>
                       </div>
                     </div>
-                  </article>
+                  </Card>
                 );
               })}
             </div>
           )}
-        </section>
+        </Section>
       </div>
       <AddCardModal
         isOpen={showAddModal}
@@ -461,11 +401,3 @@ async function deleteCard(id: number) {
     </main>
   );
 }
-
-
-type MetricProps = {
-  label: string;
-  value: string;
-};
-
-

@@ -3,20 +3,15 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
-
-type PokemonCard = {
-  id: string;
-  name: string;
-  number: string;
-  rarity?: string;
-  images: {
-    small: string;
-    large: string;
-  };
-  set: {
-    name: string;
-  };
-};
+import { parseJsonResponse } from "@/lib/fetchJson";
+import type { PokemonCard } from "@/lib/types";
+import PageHeader from "@/components/ui/PageHeader";
+import Section from "@/components/ui/Section";
+import Card from "@/components/ui/Card";
+import Badge from "@/components/ui/Badge";
+import LoadingState from "@/components/ui/LoadingState";
+import ErrorState from "@/components/ui/ErrorState";
+import EmptyState from "@/components/ui/EmptyState";
 
 type SearchResponse = {
   data?: PokemonCard[];
@@ -107,25 +102,7 @@ export default function SearchPage() {
         });
       }
 
-      const responseText = await response.text();
-
-      let result: SearchResponse;
-
-      try {
-        result = JSON.parse(responseText) as SearchResponse;
-      } catch {
-        throw new Error(
-          `The card search service returned an invalid response (${response.status}).`
-        );
-      }
-
-      if (!response.ok) {
-        throw new Error(
-          result.message ||
-            result.error ||
-            `Card search failed with status ${response.status}.`
-        );
-      }
+      const result = await parseJsonResponse<SearchResponse>(response);
 
       setCards(result.data ?? []);
     } catch (searchError) {
@@ -187,22 +164,13 @@ export default function SearchPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-8 text-white lg:px-10">
+    <main className="min-h-screen px-6 py-8 lg:px-10">
       <div className="mx-auto max-w-7xl">
-        <header className="mb-10">
-          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#d6b36a]">
-            Discover cards
-          </p>
-
-          <h1 className="mt-2 text-4xl font-black tracking-tight">
-            Card Search
-          </h1>
-
-          <p className="mt-3 max-w-2xl text-slate-400">
-            Search the Pokémon card database and discover potential grading
-            opportunities.
-          </p>
-        </header>
+        <PageHeader
+          eyebrow="Discover cards"
+          title="Card Search"
+          description="Search the Pokémon card database and discover potential grading opportunities."
+        />
 
         <form
           onSubmit={handleSearch}
@@ -211,7 +179,7 @@ export default function SearchPage() {
           <div className="relative flex-1">
             <Search
               size={20}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-subtle"
             />
 
             <input
@@ -220,14 +188,14 @@ export default function SearchPage() {
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search Charizard, Pikachu, Umbreon..."
               autoComplete="off"
-              className="w-full rounded-2xl border border-slate-800 bg-slate-900 py-4 pl-12 pr-4 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400"
+              className="w-full rounded-2xl border border-border bg-surface-raised py-4 pl-12 pr-4 text-foreground outline-none transition placeholder:text-subtle focus:border-brand"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading || query.trim().length < 2}
-            className="rounded-2xl bg-[#d6b36a] px-6 py-4 font-bold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-2xl bg-brand px-6 py-4 font-bold text-background transition hover:bg-brand-light disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? "Searching..." : "Search"}
           </button>
@@ -235,66 +203,45 @@ export default function SearchPage() {
 
         <section className="mt-10">
           {loading && (
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-12 text-center text-slate-400">
-              Searching for Pokémon cards...
-            </div>
+            <LoadingState message="Searching for Pokémon cards..." />
           )}
 
           {!loading && error && (
-            <div className="rounded-3xl border border-red-900/60 bg-red-950/30 p-8 text-center text-red-300">
-              <h2 className="font-bold">Search unavailable</h2>
-              <p className="mt-2">{error}</p>
-
-              <button
-                type="button"
-                onClick={() => searchCards(query, true)}
-                className="mt-5 rounded-xl bg-red-300 px-4 py-2 font-bold text-red-950 transition hover:bg-red-200"
-              >
-                Try again
-              </button>
-            </div>
+            <ErrorState
+              title="Search unavailable"
+              message={error}
+              onRetry={() => searchCards(query, true)}
+            />
           )}
 
           {!loading && !error && hasSearched && cards.length === 0 && (
-            <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-900/40 p-12 text-center">
-              <h2 className="text-xl font-bold">No cards found</h2>
-
-              <p className="mt-2 text-slate-400">
-                Try a shorter search such as Charizard or Pikachu.
-              </p>
-            </div>
+            <EmptyState
+              title="No cards found"
+              description="Try a shorter search such as Charizard or Pikachu."
+            />
           )}
 
           {!loading && !error && !hasSearched && (
-            <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-900/40 p-12 text-center">
-              <h2 className="text-xl font-bold">
-                Search results will appear here
-              </h2>
-
-              <p className="mt-2 text-slate-400">
-                Start typing a card name such as Charizard.
-              </p>
-            </div>
+            <EmptyState
+              title="Search results will appear here"
+              description="Start typing a card name such as Charizard."
+            />
           )}
 
           {!loading && !error && cards.length > 0 && (
-            <>
-              <div className="mb-5 flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Search results</h2>
-
-                <p className="text-sm text-slate-500">
-                  {cards.length} cards shown
-                </p>
-              </div>
-
+            <Section title="Search results" trailing={`${cards.length} cards shown`}>
               <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                 {cards.map((card) => (
-                  <article
+                  <Card
                     key={card.id}
-                    className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/70 transition hover:-translate-y-1 hover:border-emerald-400/50"
+                    as="article"
+                    hover
+                    hoverAccent="brand"
+                    padding="none"
+                    className="overflow-hidden"
                   >
                     <Link href={`/cards/${encodeURIComponent(card.id)}`}>
-                      <div className="flex min-h-[340px] items-center justify-center bg-slate-950/70 p-6">
+                      <div className="flex min-h-[340px] items-center justify-center bg-background/70 p-6">
                         <img
                           src={card.images.small}
                           alt={`${card.name} Pokémon card`}
@@ -305,7 +252,7 @@ export default function SearchPage() {
                     </Link>
 
                     <div className="p-5">
-                      <p className="text-sm font-semibold text-[#d6b36a]">
+                      <p className="text-sm font-semibold text-brand">
                         {card.set.name}
                       </p>
 
@@ -313,32 +260,32 @@ export default function SearchPage() {
                         href={`/cards/${encodeURIComponent(card.id)}`}
                         className="block"
                       >
-                        <h3 className="mt-1 text-xl font-bold transition hover:text-[#ead39b]">
+                        <h3 className="mt-1 text-xl font-bold transition hover:text-brand-light">
                           {card.name}
                         </h3>
                       </Link>
 
                       <div className="mt-4 flex items-center justify-between gap-3 text-sm">
-                        <span className="text-slate-400">
+                        <span className="text-muted">
                           Card #{card.number}
                         </span>
 
-                        <span className="max-w-[55%] truncate rounded-full bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-300">
+                        <Badge className="max-w-[55%] truncate">
                           {card.rarity || "Unknown rarity"}
-                        </span>
+                        </Badge>
                       </div>
 
                       <Link
                         href={`/cards/${encodeURIComponent(card.id)}`}
-                        className="mt-5 block w-full rounded-xl bg-[#d6b36a] px-4 py-3 text-center font-bold text-slate-950 transition hover:bg-emerald-300"
+                        className="mt-5 block w-full rounded-xl bg-brand px-4 py-3 text-center font-bold text-background transition hover:bg-brand-light"
                       >
                         View Card
                       </Link>
                     </div>
-                  </article>
+                  </Card>
                 ))}
               </div>
-            </>
+            </Section>
           )}
         </section>
       </div>

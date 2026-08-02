@@ -1,15 +1,10 @@
+import { formatCurrency } from "@/lib/format";
+
 type ProgressRowProps = {
   label: string;
   value: number;
   total: number;
 };
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-GB", {
-    style: "currency",
-    currency: "GBP",
-  }).format(value);
-}
 
 export default function ProgressRow({
   label,
@@ -21,13 +16,13 @@ export default function ProgressRow({
   return (
     <div>
       <div className="mb-2 flex items-center justify-between text-sm">
-        <span className="text-slate-400">{label}</span>
+        <span className="text-muted">{label}</span>
         <span className="font-bold">{formatCurrency(value)}</span>
       </div>
 
-      <div className="h-2 rounded-full bg-slate-800">
+      <div className="h-2 rounded-full bg-surface-muted">
         <div
-          className="h-2 rounded-full bg-[#d6b36a]"
+          className="h-2 rounded-full bg-brand"
           style={{ width: `${width}%` }}
         />
       </div>

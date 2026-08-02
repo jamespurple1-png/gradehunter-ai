@@ -1,14 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-type CardPrice = {
-  market?: number;
-};
-
-type PokemonCard = {
-  tcgplayer?: {
-    prices?: Record<string, CardPrice>;
-  };
-};
+import type { PokemonCard } from "@/lib/types";
 
 type PokemonResponse = {
   data?: PokemonCard;
