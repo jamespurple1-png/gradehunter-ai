@@ -322,7 +322,7 @@ export default function PortfolioPage() {
       <div className="mx-auto max-w-7xl">
         <header className="mb-10 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-400">
+            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#d6b36a]">
               Collection
             </p>
 
@@ -341,7 +341,7 @@ export default function PortfolioPage() {
               Promise.all([fetchMarketPrices(items), fetchExchangeRate()])
             }
             disabled={pricesLoading || items.length === 0}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:border-emerald-400 hover:text-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:border-[#d6b36a] hover:text-[#d6b36a] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <RefreshCw
               size={18}
@@ -520,7 +520,7 @@ export default function PortfolioPage() {
                     <div className="p-6">
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <p className="text-sm font-semibold text-emerald-400">
+                          <p className="text-sm font-semibold text-[#d6b36a]">
                             {item.set_name}
                           </p>
 
@@ -596,7 +596,7 @@ export default function PortfolioPage() {
                               Market total
                             </p>
 
-                            <p className="mt-1 text-2xl font-bold text-emerald-400">
+                            <p className="mt-1 text-2xl font-bold text-[#d6b36a]">
                               {pricesLoading
                                 ? "Loading..."
                                 : marketTotalGbp !== null
@@ -686,7 +686,7 @@ function StatCard({
           positive === undefined
             ? "text-white"
             : positive
-              ? "text-emerald-400"
+              ? "text-[#d6b36a]"
               : "text-red-400"
         }`}
       >
@@ -715,7 +715,7 @@ function PerformanceMetric({
 
       <p
         className={`mt-2 font-bold ${
-          positive ? "text-emerald-400" : "text-red-400"
+          positive ? "text-[#d6b36a]" : "text-red-400"
         }`}
       >
         {value}

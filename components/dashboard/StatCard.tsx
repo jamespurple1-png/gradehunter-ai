@@ -21,7 +21,7 @@ export default function StatCard({
         className={`mt-3 text-3xl font-black ${
           label === "Potential ROI"
             ? positive
-              ? "text-emerald-400"
+              ? "text-[#d6b36a]-400"
               : "text-red-400"
             : "text-white"
         }`}

@@ -1,7 +1,7 @@
 export default function settings() {
   return (
     <div className="min-h-screen bg-slate-950 px-6 py-8 text-white lg:px-10">
-      <p className="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-400">
+      <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#d6b36a]">
         GradeHunter AI
       </p>
 

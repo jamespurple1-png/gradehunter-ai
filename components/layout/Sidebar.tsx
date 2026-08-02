@@ -60,26 +60,35 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="hidden min-h-screen w-72 flex-col border-r border-slate-800 bg-slate-950 px-5 py-6 lg:flex">
-      <div className="mb-10 px-3">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-400 font-black text-slate-950">
+    <aside className="hidden min-h-screen w-72 shrink-0 border-r border-white/[0.07] bg-[#080808]/95 px-5 py-6 backdrop-blur-xl lg:flex lg:flex-col">
+      <div className="mb-9 px-2">
+        <Link
+          href="/"
+          className="group flex items-center gap-3 rounded-2xl px-2 py-2"
+        >
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#d6b36a]/25 bg-[#d6b36a]/10 font-black text-[#ead39b] shadow-lg shadow-black/20 transition group-hover:border-[#d6b36a]/45 group-hover:bg-[#d6b36a]/15">
             GH
           </div>
 
           <div>
-            <p className="text-lg font-black tracking-tight text-white">
+            <p className="text-lg font-black tracking-[-0.03em] text-[#f5f3ee]">
               GradeHunter
             </p>
 
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-400">
-              AI
+            <p className="text-[10px] font-bold uppercase tracking-[0.26em] text-stone-600">
+              Collectibles Intelligence
             </p>
           </div>
         </Link>
       </div>
 
-      <nav className="flex-1 space-y-2">
+      <div className="mb-4 px-3">
+        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-stone-700">
+          Workspace
+        </p>
+      </div>
+
+      <nav className="flex-1 space-y-1.5">
         {navigation.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
@@ -88,61 +97,86 @@ export default function Sidebar() {
             <Link
               key={item.name}
               href={item.href}
-              className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+              className={`group flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
                 active
-                  ? "bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-400/10"
-                  : "text-slate-400 hover:bg-slate-900 hover:text-white"
+                  ? "border-[#d6b36a]/15 bg-[#d6b36a]/[0.07] text-[#f5f3ee] shadow-lg shadow-black/10"
+                  : "border-transparent text-stone-500 hover:bg-white/[0.035] hover:text-stone-200"
               }`}
             >
-              <Icon size={20} />
+              <span
+                className={`flex h-8 w-8 items-center justify-center rounded-xl transition ${
+                  active
+                    ? "bg-[#d6b36a]/12 text-[#ead39b]"
+                    : "bg-white/[0.025] text-stone-600 group-hover:text-stone-300"
+                }`}
+              >
+                <Icon size={18} />
+              </span>
+
               <span>{item.name}</span>
+
+              {item.name === "Scanner" && (
+                <span className="ml-auto rounded-full border border-[#d6b36a]/15 bg-[#d6b36a]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#ead39b]">
+                  New
+                </span>
+              )}
             </Link>
           );
         })}
       </nav>
 
-      <div className="mt-8 border-t border-slate-800 pt-5">
-        <Link
-          href="/login"
-          className={`mb-2 flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
-            isActive("/login")
-              ? "bg-slate-800 text-white"
-              : "text-slate-400 hover:bg-slate-900 hover:text-white"
-          }`}
-        >
-          <LogIn size={20} />
-          <span>Login</span>
-        </Link>
+      <div className="mt-8 border-t border-white/[0.07] pt-5">
+        <div className="space-y-1.5">
+          <Link
+            href="/login"
+            className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+              isActive("/login")
+                ? "bg-white/[0.06] text-white"
+                : "text-stone-500 hover:bg-white/[0.035] hover:text-stone-200"
+            }`}
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/[0.025] text-stone-600 transition group-hover:text-stone-300">
+              <LogIn size={18} />
+            </span>
 
-        <Link
-          href="/settings"
-          className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
-            isActive("/settings")
-              ? "bg-slate-800 text-white"
-              : "text-slate-400 hover:bg-slate-900 hover:text-white"
-          }`}
-        >
-          <Settings size={20} />
-          <span>Settings</span>
-        </Link>
+            <span>Login</span>
+          </Link>
 
-        <div className="mt-5 rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 to-slate-900 p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400">
-            GradeHunter AI
-          </p>
+          <Link
+            href="/settings"
+            className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+              isActive("/settings")
+                ? "bg-white/[0.06] text-white"
+                : "text-stone-500 hover:bg-white/[0.035] hover:text-stone-200"
+            }`}
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/[0.025] text-stone-600 transition group-hover:text-stone-300">
+              <Settings size={18} />
+            </span>
 
-          <h3 className="mt-2 text-lg font-bold text-white">
-            Scanner Coming Soon
-          </h3>
+            <span>Settings</span>
+          </Link>
+        </div>
 
-          <p className="mt-2 text-sm leading-6 text-slate-400">
-            Scan eBay, Cardmarket and TCGPlayer for undervalued listings and
-            grading opportunities.
-          </p>
+        <div className="mt-5 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-600">
+              Market status
+            </p>
 
-          <div className="mt-4 rounded-xl bg-emerald-400 px-3 py-2 text-center text-sm font-bold text-slate-950">
-            Coming Soon
+            <span className="flex items-center gap-1.5 text-[11px] font-semibold text-[#d6b36a]-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#d6b36a] shadow-[0_0_10px_rgba(214,179,106,0.7)]" />
+              Live
+            </span>
           </div>
+
+          <p className="mt-3 text-sm font-semibold text-stone-300">
+            Pricing connected
+          </p>
+
+          <p className="mt-1 text-xs leading-5 text-stone-600">
+            TCGplayer market data and GBP conversion are active.
+          </p>
         </div>
       </div>
     </aside>

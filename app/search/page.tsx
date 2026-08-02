@@ -136,8 +136,6 @@ export default function SearchPage() {
         return;
       }
 
-      console.error("GradeHunter search error:", searchError);
-
       lastSearchRef.current = "";
       setCards([]);
 
@@ -192,7 +190,7 @@ export default function SearchPage() {
     <main className="min-h-screen bg-slate-950 px-6 py-8 text-white lg:px-10">
       <div className="mx-auto max-w-7xl">
         <header className="mb-10">
-          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-400">
+          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#d6b36a]">
             Discover cards
           </p>
 
@@ -229,7 +227,7 @@ export default function SearchPage() {
           <button
             type="submit"
             disabled={loading || query.trim().length < 2}
-            className="rounded-2xl bg-emerald-400 px-6 py-4 font-bold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-2xl bg-[#d6b36a] px-6 py-4 font-bold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? "Searching..." : "Search"}
           </button>
@@ -307,7 +305,7 @@ export default function SearchPage() {
                     </Link>
 
                     <div className="p-5">
-                      <p className="text-sm font-semibold text-emerald-400">
+                      <p className="text-sm font-semibold text-[#d6b36a]">
                         {card.set.name}
                       </p>
 
@@ -315,7 +313,7 @@ export default function SearchPage() {
                         href={`/cards/${encodeURIComponent(card.id)}`}
                         className="block"
                       >
-                        <h3 className="mt-1 text-xl font-bold transition hover:text-emerald-300">
+                        <h3 className="mt-1 text-xl font-bold transition hover:text-[#ead39b]">
                           {card.name}
                         </h3>
                       </Link>
@@ -332,7 +330,7 @@ export default function SearchPage() {
 
                       <Link
                         href={`/cards/${encodeURIComponent(card.id)}`}
-                        className="mt-5 block w-full rounded-xl bg-emerald-400 px-4 py-3 text-center font-bold text-slate-950 transition hover:bg-emerald-300"
+                        className="mt-5 block w-full rounded-xl bg-[#d6b36a] px-4 py-3 text-center font-bold text-slate-950 transition hover:bg-emerald-300"
                       >
                         View Card
                       </Link>

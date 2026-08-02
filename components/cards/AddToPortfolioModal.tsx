@@ -164,7 +164,7 @@ export default function AddToPortfolioModal({
             />
 
             <div>
-              <p className="text-sm font-semibold uppercase tracking-widest text-emerald-400">
+              <p className="text-sm font-semibold uppercase tracking-widest text-[#d6b36a]-400">
                 Add to portfolio
               </p>
 
@@ -314,7 +314,7 @@ export default function AddToPortfolioModal({
             <button
               type="submit"
               disabled={saving}
-              className="rounded-xl bg-emerald-400 px-5 py-3 font-bold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-xl bg-[#d6b36a] px-5 py-3 font-bold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {saving ? "Saving..." : "Save to portfolio"}
             </button>

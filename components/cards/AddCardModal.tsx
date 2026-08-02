@@ -139,7 +139,7 @@ export default function AddCardModal({
       <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
         <div className="mb-6 flex items-start justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-widest text-emerald-400">
+            <p className="text-sm font-semibold uppercase tracking-widest text-[#d6b36a]-400">
               Portfolio
             </p>
 
@@ -262,7 +262,7 @@ export default function AddCardModal({
             <button
               type="submit"
               disabled={saving}
-              className="rounded-xl bg-emerald-400 px-5 py-3 font-bold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-xlbg-[#d6b36a] px-5 py-3 font-bold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {saving
                 ? "Saving..."

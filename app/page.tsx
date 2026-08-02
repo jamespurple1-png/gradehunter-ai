@@ -129,7 +129,7 @@ async function deleteCard(id: number) {
 
         <header className="mb-10 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="mb-2 text-sm font-semibold uppercase tracking-[0.25em] text-emerald-400">
+            <p className="mb-2 text-sm font-semibold uppercase tracking-[0.25em] text-[#d6b36a]">
               Pokémon grading portfolio
             </p>
 
@@ -146,7 +146,7 @@ async function deleteCard(id: number) {
          <button
   type="button"
   onClick={openAddModal}
-  className="rounded-xl bg-emerald-400 px-5 py-3 font-bold text-slate-950 transition hover:bg-emerald-300"
+  className="rounded-xl bg-[#d6b36a] px-5 py-3 font-bold text-slate-950 transition hover:bg-emerald-300"
 >
   + Add Card
 </button>
@@ -267,7 +267,7 @@ async function deleteCard(id: number) {
 
               <div className="mt-2 flex items-end justify-between">
                 <div>
-                  <p className="text-4xl font-black text-emerald-400">
+                  <p className="text-4xl font-black text-[#d6b36a]">
                     {portfolioStats.roi > 100
                       ? "A"
                       : portfolioStats.roi > 50
@@ -359,7 +359,7 @@ async function deleteCard(id: number) {
                   >
                     <div className="mb-5 flex items-start justify-between gap-4">
                       <div>
-                        <p className="text-sm text-emerald-400">
+                        <p className="text-sm text-[#d6b36a]">
                           {card.set}
                         </p>
 
@@ -425,7 +425,7 @@ async function deleteCard(id: number) {
                           <p
                             className={`mt-1 text-2xl font-bold ${
                               profit >= 0
-                                ? "text-emerald-400"
+                                ? "text-[#d6b36a]"
                                 : "text-red-400"
                             }`}
                           >

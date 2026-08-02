@@ -5,7 +5,6 @@ import { useParams } from "next/navigation";
 import { ArrowLeft, Bookmark, BriefcaseBusiness } from "lucide-react";
 import { useEffect, useState } from "react";
 import AddToPortfolioModal from "@/components/cards/AddToPortfolioModal";
-
 type CardPrice = {
   low?: number;
   mid?: number;
@@ -200,7 +199,7 @@ export default function CardDetailsPage() {
         </Link>
 
         {successMessage && (
-          <div className="mb-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 text-sm font-semibold text-emerald-300">
+          <div className="mb-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 text-sm font-semibold text-[#ead39b">
             {successMessage}
           </div>
         )}
@@ -217,7 +216,7 @@ export default function CardDetailsPage() {
           </section>
 
           <section>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-400">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#d6b36a]">
               {card.set.name}
             </p>
 
@@ -280,7 +279,7 @@ export default function CardDetailsPage() {
                   setSuccessMessage("");
                   setShowPortfolioModal(true);
                 }}
-                className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-400 px-5 py-4 font-bold text-slate-950 transition hover:bg-emerald-300"
+                className="flex items-center justify-center gap-2 rounded-2xl bg-[#d6b36a] px-5 py-4 font-bold text-slate-950 transition hover:bg-emerald-300"
               >
                 <BriefcaseBusiness size={20} />
                 Add to Portfolio
@@ -288,7 +287,7 @@ export default function CardDetailsPage() {
 
               <button
                 type="button"
-                className="flex items-center justify-center gap-2 rounded-2xl border border-slate-700 bg-slate-900 px-5 py-4 font-bold text-white transition hover:border-emerald-400 hover:text-emerald-300"
+                className="flex items-center justify-center gap-2 rounded-2xl border border-slate-700 bg-slate-900 px-5 py-4 font-bold text-white transition hover:border-[#d6b36a] hover:text-[#d6b36a]"
               >
                 <Bookmark size={20} />
                 Add to Watchlist

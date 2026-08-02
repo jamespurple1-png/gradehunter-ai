@@ -27,7 +27,7 @@ export default function ProgressRow({
 
       <div className="h-2 rounded-full bg-slate-800">
         <div
-          className="h-2 rounded-full bg-emerald-400"
+          className="h-2 rounded-full bg-[#d6b36a]"
           style={{ width: `${width}%` }}
         />
       </div>
